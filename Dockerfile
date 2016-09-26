@@ -7,6 +7,8 @@ ENV ACTIVEMQ_VERSION 5.14.0
 WORKDIR /opt/app
 
 ADD start-activemq.sh /bin/start-activemq.sh
+ADD start-connectors.sh /bin/start-connectors.sh
+ADD start-authorization.sh /bin/start-authorization.sh
 
 # Install activemq
 RUN chmod +x /bin/start-*.sh \
