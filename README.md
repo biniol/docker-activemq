@@ -21,6 +21,20 @@ You need edit (add) this env:
 - **ACTIVE_MQ_TRANSPORT_CONNECTOR_AMQP_PORT**: port for AMQP connector (default value 5672)
 - **ACTIVE_MQ_TRANSPORT_CONNECTOR_STOMP_PORT**: port for STOMP connector (default value 61613)
 - **ACTIVE_MQ_TRANSPORT_CONNECTOR_STOPMSSL_PORT** port for STOMPSSL connector (default value 61612)
+- **ACTIVE_MQ_AUTHORIZATION_QUEUE_NAMES** names of queues with authorization
+- **ACTIVE_MQ_AUTHORIZATION_QUEUE_${QUEUE_NAME}_READ** role with read authorization for topic
+- **ACTIVE_MQ_AUTHORIZATION_QUEUE_${QUEUE_NAME}_WRITE** role with write authorization for topic
+- **ACTIVE_MQ_AUTHORIZATION_QUEUE_${QUEUE_NAME}_ADMIN** role with admin authorization for topic
+- **ACTIVE_MQ_AUTHORIZATION_TOPIC_NAMES** names of topics with authorization
+- **ACTIVE_MQ_AUTHORIZATION_QUEUE_${TOPIC_NAME}_READ** role with read authorization for topic
+- **ACTIVE_MQ_AUTHORIZATION_QUEUE_${TOPIC_NAME}_WRITE** role with write authorization for topic
+- **ACTIVE_MQ_AUTHORIZATION_QUEUE_${TOPIC_NAME}_ADMIN** role with admin authorization for topic
+- **ACTIVE_MQ_AUTHORIZATION_TEMP_QUEUES_READ** role with read authorization for temporary queue
+- **ACTIVE_MQ_AUTHORIZATION_TEMP_QUEUES_WRITE** role with write authorization for temporary queue
+- **ACTIVE_MQ_AUTHORIZATION_TEMP_QUEUES_ADMIN** role with admin authorization for temporary queue
+- **ACTIVE_MQ_AUTHORIZATION_TOPIC_ADVISORY_READ** role with read authorization for advisory topics
+- **ACTIVE_MQ_AUTHORIZATION_TOPIC_ADVISORY_WRITE** role with write authorization for advisory topics
+- **ACTIVE_MQ_AUTHORIZATION_TOPIC_ADVISORY_ADMIN** role with admin authorization for advisory topics
 - **NETWORK_OF_BROKERS_CONNECTORS_URI**: possibility to configure network of brokers. As this env variable is part of `sed` command it needs to escape all special characters like in `sed` f.e.:
 
 ```export NETWORK_OF_BROKERS_CONNECTORS_URI=static:(tcp:\/\/10.122.17.157:61616)```
@@ -37,3 +51,10 @@ You need edit (add) this env:
 If you want web console you should expose:
 - **8161**: if you need plain http connection
 - **8162**: if you need ssl connection
+
+*Mounitng*
+- **/opt/app/broker.ks** - broker keystore for SSL connection
+- **/opt/app/broker.ts** - broker truststore for SSL connection
+- **/opt/app/apache-activemq/conf/login.config** - login policy config
+- **/opt/app/apache-activemq/conf/users.properties** - users configuration
+- **/opt/app/apache-activemq/conf/groups.properties** - groups configuration
