@@ -52,7 +52,7 @@ If you want web console you should expose:
 - **8161**: if you need plain http connection
 - **8162**: if you need ssl connection
 
-*Mounitng*
+*Mounting files*
 - **/opt/app/broker.ks** - broker keystore for SSL connection
 - **/opt/app/broker.ts** - broker truststore for SSL connection
 - **/opt/app/apache-activemq/conf/login.config** - login policy config
