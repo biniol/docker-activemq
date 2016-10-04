@@ -39,15 +39,23 @@ if [[ -v NETWORK_OF_BROKERS_CONNECTORS_URI ]]; then
   sed -i -e "s/<\/shutdownHooks>/<\/shutdownHooks>\\n<networkConnectors>\\n<networkConnector uri=\"${NETWORK_OF_BROKERS_CONNECTORS_URI}\"\/>\\n<\/networkConnectors>/g" /opt/app/apache-activemq/conf/activemq.xml
 fi
 
+# Enabling Persistance Adapter
+if [[ -v PERSISTANCE_ENABLED ]]; then
+  persistanceEnabled=`echo "${PERSISTANCE_ENABLED,,}"`
+  if [[ "$persistanceEnabled" == "true" ]]; then
+    sed -i -e "s/<broker xmlns=\"http:\/\/activemq.apache.org\/schema\/core\" brokerName=\"localhost\" dataDirectory=\"\${activemq.data}\" persistent=\"false\">/<broker xmlns=\"http:\/\/activemq.apache.org\/schema\/core\" brokerName=\"localhost\" dataDirectory=\"\${activemq.data}\">/g" /opt/app/apache-activemq/conf/activemq.xml
+  fi
+fi
+
 sed -i -e "s/admin activemq/admin ${ADMIN_PASSWORD}/" /opt/app/apache-activemq/conf/jmx.password
 sed -i -e "s/admin: admin, admin/admin: ${ADMIN_PASSWORD}, admin/" /opt/app/apache-activemq/conf/jetty-realm.properties
 sed -i -e 's/user: user, user//' /opt/app/apache-activemq/conf/jetty-realm.properties
 
-/bin/start-connectors.sh
+/bin/configure-connectors.sh
 if [ $? -ne 0 ]; then
     exit 1
 fi
-/bin/start-authorization.sh
+/bin/configure-authorization.sh
 if [ $? -ne 0 ]; then
     exit 1
 fi

@@ -1,0 +1,8 @@
+apdu_activemq:
+  container_name: apdu_activemq_auth
+  image: activemq-local:latest
+  ports:
+  - 61616:61616
+  environment:
+  - ACTIVE_MQ_TRANSPORT_CONNECTOR_NAMES=OPENWIRE
+

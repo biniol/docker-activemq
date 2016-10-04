@@ -3,41 +3,26 @@ FROM oberthur/docker-ubuntu-java:jdk8_8.91.14
 MAINTAINER Dawid Malinowski <d.malinowski@oberthur.com>
 
 ENV HOME=/opt/app
-ENV ACTIVEMQ_VERSION 5.14.0
+ENV ACTIVEMQ_VERSION 5.14.1
 WORKDIR /opt/app
 
 ADD start-activemq.sh /bin/start-activemq.sh
-ADD start-connectors.sh /bin/start-connectors.sh
-ADD start-authorization.sh /bin/start-authorization.sh
+ADD configure-connectors.sh /bin/configure-connectors.sh
+ADD configure-authorization.sh /bin/configure-authorization.sh
+ADD activemq.xml /opt/app/activemq.xml
+ADD jetty.xml /opt/app/jetty.xml
 
 # Install activemq
 RUN chmod +x /bin/start-*.sh \
+  && chmod +x /bin/configure-*.sh \
   && curl -LO https://www.apache.org/dist/activemq/${ACTIVEMQ_VERSION}/apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz \
   && gunzip apache-activemq-${ACTIVEMQ_VERSION}-bin.tar.gz \
   && tar -xf apache-activemq-${ACTIVEMQ_VERSION}-bin.tar -C /opt/app \
   && mv apache-activemq-*/ apache-activemq/ \
   && chmod -x apache-activemq/bin/activemq \
-  && mv apache-activemq/conf/activemq.xml apache-activemq/conf/activemq.xml.orig \
-  && awk '/.*stomp.*/{print " <transportConnector name=\"stompssl\" uri=\"stomp+nio+ssl://0.0.0.0:61612?transport.enabledCipherSuites=SSL_RSA_WITH_RC4_128_SHA,SSL_DH_anon_WITH_3DES_EDE_CBC_SHA\" />"}1' apache-activemq/conf/activemq.xml.orig >> apache-activemq/conf/activemq.xml \
-
-  # change to ssl connector
-  && apt-get update \
-  && apt-get install xmlstarlet \
-  && xmlstarlet ed -L --subnode "/_:beans/_:bean[@id='invokeConnectors']/_:property[@name='arguments']/_:list" --type elem -n 'bean id="SecureConnector" class="org.eclipse.jetty.server.ServerConnector"' -v "" /opt/app/apache-activemq/conf/jetty.xml \
-  && xmlstarlet ed -L --subnode "/_:beans/_:bean[@id='invokeConnectors']/_:property[@name='arguments']/_:list/_:bean[@id='SecureConnector' and @class='org.eclipse.jetty.server.ServerConnector']" --type elem -n 'constructor-arg' -v "" /opt/app/apache-activemq/conf/jetty.xml \
-  && xmlstarlet ed -L --subnode "/_:beans/_:bean[@id='invokeConnectors']/_:property[@name='arguments']/_:list/_:bean[@id='SecureConnector' and @class='org.eclipse.jetty.server.ServerConnector']/_:constructor-arg" --type elem -n 'bean id="handlers" class="org.eclipse.jetty.util.ssl.SslContextFactory"' -v "" /opt/app/apache-activemq/conf/jetty.xml \
-  && xmlstarlet ed -L --subnode "/_:beans/_:bean[@id='invokeConnectors']/_:property[@name='arguments']/_:list/_:bean[@id='SecureConnector' and @class='org.eclipse.jetty.server.ServerConnector']" --type elem -n 'constructor-arg ref="Server"' -v "" /opt/app/apache-activemq/conf/jetty.xml \
-  && xmlstarlet ed -L --subnode "/_:beans/_:bean[@id='invokeConnectors']/_:property[@name='arguments']/_:list/_:bean[@id='SecureConnector' and @class='org.eclipse.jetty.server.ServerConnector']/_:constructor-arg/_:bean[@id='handlers']" --type elem -n 'property name="keyStorePath" value="${activemq.conf}/broker.ks"' -v "" /opt/app/apache-activemq/conf/jetty.xml \
-  && xmlstarlet ed -L --subnode "/_:beans/_:bean[@id='invokeConnectors']/_:property[@name='arguments']/_:list/_:bean[@id='SecureConnector' and @class='org.eclipse.jetty.server.ServerConnector']/_:constructor-arg/_:bean[@id='handlers']" --type elem -n 'property name="keyStorePassword" value="password"' -v "" /opt/app/apache-activemq/conf/jetty.xml \
-  && xmlstarlet ed -L --subnode "/_:beans/_:bean[@id='invokeConnectors']/_:property[@name='arguments']/_:list/_:bean[@id='SecureConnector' and @class='org.eclipse.jetty.server.ServerConnector']" --type elem -n 'property name="port" value="8162"' -v "" /opt/app/apache-activemq/conf/jetty.xml \
-
-  # clean all cache to clean space
-  && apt-get purge -y unzip \
-  && rm -rf /var/lib/apt/lists/* \
-  && apt-get clean \
-  && apt-get -y autoremove \
-
-  && rm apache-activemq-$ACTIVEMQ_VERSION-bin.tar
+  && mv activemq.xml apache-activemq/conf/activemq.xml \
+  && mv jetty.xml apache-activemq/conf/jetty.xml \
+  && rm apache-activemq-${ACTIVEMQ_VERSION}-bin.tar
 
 # Add user app
 RUN echo "app:x:999:999::/opt/app:/bin/false" >> /etc/passwd; \
