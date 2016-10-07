@@ -63,4 +63,8 @@ Basic Docker image to run activemq as user app (999:999)
 
 
 *Examples*
+
 Examples are included in **examples** dir.
+**minimal-tcp-config** - example of minimal activemq tcp connector config
+**minimal-ssl-config** - example of using ssl connection of activemq
+**network-of-brokers-with-ssl-config** - example of activemq config with **network of brokers** architecture and producer/consumer ssl connection.

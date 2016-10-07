@@ -1,0 +1,95 @@
+apdu_activemq:
+  container_name: apdu_activemq_queue
+  image: activemq-local:latest
+  #image: oberthur/docker-activemq:5.13.2_8.91.14
+  ports:
+  - 61617:61617
+  - 61616:61616
+  - 8161:8161
+  volumes:
+  - /var/containers_data/activemq/data:/opt/app/apache-activemq/data:rw
+  - /var/containers_data/activemq/tmp:/tmp:rw
+  - ./volumes/broker.ks:/opt/app/broker.ks
+  - ./volumes/broker.ts:/opt/app/broker.ts
+  environment:
+  - ACTIVE_MQ_TRANSPORT_CONNECTOR_NAMES=OPENWIRE,SSL
+  - ACTIVE_MQ_TRANSPORT_CONNECTOR_SSL_KEYSTOREPASSWORD=oberthur
+  - ACTIVE_MQ_TRANSPORT_CONNECTOR_SSL_TRUSTSTOREPASSWORD=oberthur
+  links:
+  - apdu_activemq_2:activemq2
+
+apdu_activemq_1:
+  container_name: apdu_activemq_queue_1
+  image: activemq-local:latest
+  #image: oberthur/docker-activemq:5.13.2_8.91.14
+  ports:
+  - 62626:61616
+  - 62627:61617
+  - 8262:8161
+  volumes:
+  - /var/containers_data/activemq_1/data:/opt/app/apache-activemq/data:rw
+  - /var/containers_data/activemq_1/tmp:/tmp:rw
+  - ./volumes/broker.ks:/opt/app/broker.ks
+  - ./volumes/broker.ts:/opt/app/broker.ts
+  environment:
+  - ACTIVE_MQ_TRANSPORT_CONNECTOR_NAMES=OPENWIRE,SSL
+  - ACTIVE_MQ_TRANSPORT_CONNECTOR_SSL_KEYSTOREPASSWORD=oberthur
+  - ACTIVE_MQ_TRANSPORT_CONNECTOR_SSL_TRUSTSTOREPASSWORD=oberthur
+  - NETWORK_OF_BROKERS_CONNECTORS_URI=static:(tcp:\/\/activemq2:61616)
+  links:
+  - apdu_activemq_2:activemq2
+
+apdu_activemq_2:
+  container_name: apdu_activemq_queue_2
+  image: activemq-local:latest
+  #image: oberthur/docker-activemq:5.13.2_8.91.14
+  ports:
+  - 63636:61616
+  - 63637:61617
+  - 8363:8161
+  volumes:
+  - /var/containers_data/activemq_2/data:/opt/app/apache-activemq/data:rw
+  - /var/containers_data/activemq_2/tmp:/tmp:rw
+  - ./volumes/broker.ks:/opt/app/broker.ks
+  - ./volumes/broker.ts:/opt/app/broker.ts
+  environment:
+  - ACTIVE_MQ_TRANSPORT_CONNECTOR_NAMES=OPENWIRE,SSL
+  - ACTIVE_MQ_TRANSPORT_CONNECTOR_SSL_KEYSTOREPASSWORD=oberthur
+  - ACTIVE_MQ_TRANSPORT_CONNECTOR_SSL_TRUSTSTOREPASSWORD=oberthur
+
+apdu_messaging_hsa:
+  container_name: apdu_messaging_hsa_queue
+  image: apdu-messaging-hsa-app-local:latest
+  #image: registry.otlabs.fr/components/apdu-messaging-hsa-app:1.1.0-SNAPSHOT-35dae29-2
+  command: [java, -Dspring.profiles.active=hsa, -Dapp.config.dir=/root/apdumessaging/config,-Dlogback.configurationFile=/root/apdumessaging/config/custom/logback.xml, -DapduGenConfigFile=/root/apdumessaging/config/apdugenconfig.properties, -jar, /usr/local/sbin/apdu-messaging-hsa-app.jar, -d]
+  volumes:
+  - ./volumes/hsm-configuration.xml:/root/hsm/config/hsm-configuration.xml:rw
+  - ./volumes/consumers.properties:/root/apdumessaging/config/consumers.properties:rw
+  - ./volumes/apdugen-app.properties:/root/apdumessaging/config/apdugen-app.properties:rw
+  - ./volumes/apdugenconfig.properties:/root/apdumessaging/config/apdugenconfig.properties:rw
+  - ./volumes/hsa-integration.properties:/root/apdumessaging/config/hsa-integration.properties:rw
+  - ./volumes/hsa-logback.xml:/root/apdumessaging/config/custom/logback.xml:rw
+  - ./volumes/log:/var/log/apdumessaging:rw
+  - ./volumes/client.ks:/root/apdumessaging/config/client.ks
+  - ./volumes/client.ts:/root/apdumessaging/config/client.ts
+  links:
+  - apdu_activemq:activemq
+  - apdu_activemq_1:activemq1
+
+apdu_messaging_rest:
+  container_name: apdu_messaging_rest_queue
+  image: apdu-messaging-rest-app-local:latest
+  #image: registry.otlabs.fr/components/apdu-messaging-rest-app:1.1.0-SNAPSHOT-35dae29-2
+  command: [java, -Dspring.profiles.active=hsa, -Dapp.config.dir=/root/apdumessaging/config, -Dlogback.configurationFile=/root/apdumessaging/config/custom/logback.xml, -jar, /usr/local/sbin/apdu-messaging-rest-app.jar, -d]
+  ports:
+  - 9095:9095
+  volumes:
+  - ./volumes/apdu-gen-rest-app.properties:/root/apdumessaging/config/apdu-gen-rest-app.properties:rw
+  - ./volumes/logback.xml:/root/apdumessaging/config/custom/logback.xml:rw
+  - ./volumes/log:/var/log/apdumessaging:rw
+  - ./volumes/client.ks:/root/apdumessaging/config/client.ks
+  - ./volumes/client.ts:/root/apdumessaging/config/client.ts
+  links:
+  - apdu_activemq:activemq
+  - apdu_activemq_2:activemq2
+

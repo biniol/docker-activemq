@@ -1,0 +1,63 @@
+apdu_activemq:
+  container_name: apdu_activemq_auth
+  #image: oberthur/docker-activemq:5.13.2_8.91.14
+  image: activemq-local:latest
+  ports:
+  - 61616:61616
+  - 61617:61617
+  - 8161:8161
+  volumes:
+  - /var/containers_data/activemq/data:/opt/app/apache-activemq/data:rw
+  - /var/containers_data/activemq/tmp:/tmp:rw
+  - ./volumes/broker.ks:/opt/app/broker.ks
+  - ./volumes/broker.ts:/opt/app/broker.ts
+  environment:
+  - ACTIVE_MQ_TRANSPORT_CONNECTOR_NAMES=SSL
+  - ACTIVE_MQ_TRANSPORT_CONNECTOR_SSL_KEYSTOREPASSWORD=oberthur
+  - ACTIVE_MQ_TRANSPORT_CONNECTOR_SSL_TRUSTSTOREPASSWORD=oberthur
+
+
+apdu_messaging_hsa:
+  container_name: apdu_messaging_hsa_auth
+  #image: registry.otlabs.fr/components/apdu-messaging-hsa-app:1.1.0-SNAPSHOT-35dae29-2
+  image: apdu-messaging-hsa-app-local:latest
+  command: [java, -Dspring.profiles.active=hsa, -Dapp.config.dir=/root/apdumessaging/config,-Dlogback.configurationFile=/root/apdumessaging/config/custom/logback.xml, -DapduGenConfigFile=/root/apdumessaging/config/apdugenconfig.properties, -jar, /usr/local/sbin/apdu-messaging-hsa-app.jar, -d]
+  volumes:
+  - ./volumes/hsm-configuration.xml:/root/hsm/config/hsm-configuration.xml:rw
+  - ./volumes/consumers.properties:/root/apdumessaging/config/consumers.properties:rw
+  - ./volumes/apdugen-app.properties:/root/apdumessaging/config/apdugen-app.properties:rw
+  - ./volumes/apdugenconfig.properties:/root/apdumessaging/config/apdugenconfig.properties:rw
+  - ./volumes/hsa-integration.properties:/root/apdumessaging/config/hsa-integration.properties:rw
+  - ./volumes/hsa-logback.xml:/root/apdumessaging/config/custom/logback.xml:rw
+  - ./volumes/log:/var/log/apdumessaging:rw
+  - ./volumes/client.ks:/root/apdumessaging/config/client.ks
+  - ./volumes/client.ts:/root/apdumessaging/config/client.ts
+  links:
+    - apdu_activemq:activemq
+    - esm_server:esm_server
+
+apdu_messaging_rest:
+  container_name: apdu_messaging_rest_auth
+  #image: registry.otlabs.fr/components/apdu-messaging-rest-app:1.1.0-SNAPSHOT-35dae29-2
+  image: apdu-messaging-rest-app-local:latest
+  command: [java, -Dspring.profiles.active=hsa, -Dapp.config.dir=/root/apdumessaging/config, -Dlogback.configurationFile=/root/apdumessaging/config/custom/logback.xml, -jar, /usr/local/sbin/apdu-messaging-rest-app.jar, -d]
+  ports:
+  - 9095:9095
+  volumes:
+  - ./volumes/apdu-gen-rest-app.properties:/root/apdumessaging/config/apdu-gen-rest-app.properties:rw
+  - ./volumes/logback.xml:/root/apdumessaging/config/custom/logback.xml:rw
+  - ./volumes/log:/var/log/apdumessaging:rw
+  - ./volumes/client.ks:/root/apdumessaging/config/client.ks
+  - ./volumes/client.ts:/root/apdumessaging/config/client.ts
+  links:
+    - apdu_activemq:activemq
+
+esm_server:
+  container_name: esm_server
+  image: docker-release.otlabs.fr/components/esm-server:2.5.0-6352e55-42
+  ports:
+   - 52000:52000
+  environment:
+    JCE_KEYS: "MASTER.CARD.00000001=TDES|1A7A975B5E9B1CBCD53DE6AD1A4A3B34"
+    ESM_SERVER_DELAYS: "27-A003=0 27-A002=1000"
+    JAVA_OPTS: "-Desm.service.checkKeyTypes=false"
